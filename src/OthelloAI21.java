@@ -3,7 +3,7 @@ import java.util.ArrayList;
 /**
  * A super-complex OthelloAI-implementation using alpha-beta pruning. 
  * @author Group21
- * @version 0.01
+ * @version 1.0
  */
 public class OthelloAI21 implements IOthelloAI{
 	private int currentPlayer;
@@ -49,7 +49,35 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return a utility value
 	 */
 	public int maxValue(GameState s){
-		return Integer.MIN_VALUE;
+		if(s.isFinished()){
+			return getStateUtility(s);
+		}
+
+		int maxUtilityValue = Integer.MIN_VALUE; //Minus infinity
+		int currentUtilityValue;
+
+		//Loop through all possible actions in game state s
+		ArrayList<Position> legalMoves = s.legalMoves();
+		if(legalMoves.size() == 0){
+			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
+			gameState.changePlayer();
+			return minValue(gameState);
+		}
+
+		for(Position position : legalMoves) {
+			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
+			gameState.insertToken(position);
+
+			currentUtilityValue = minValue(gameState);
+
+			//Find maximum position
+			if (currentUtilityValue > maxUtilityValue){
+				maxUtilityValue = currentUtilityValue;
+			}
+		}
+
+		//Select max utility value of the possible actions (calculated from maxValue)
+		return maxUtilityValue;
 	}
 
 	/**
@@ -60,7 +88,49 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @see GameState
 	 */
 	public int minValue(GameState s){
-		return Integer.MIN_VALUE;
+		if(s.isFinished()){
+			return getStateUtility(s);
+		}
+
+		int minUtilityValue = Integer.MAX_VALUE; //Max infinity
+		int currentUtilityValue;
+
+		//Loop through all possible actions in game state s
+		ArrayList<Position> legalMoves = s.legalMoves();
+
+		if(legalMoves.size() == 0){
+			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
+			gameState.changePlayer();
+			return maxValue(gameState);
+		}
+
+		for(Position position : legalMoves) {
+			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
+			gameState.insertToken(position);
+
+			currentUtilityValue = maxValue(gameState);
+
+			//Find maximum position
+			if (currentUtilityValue < minUtilityValue){
+				minUtilityValue = currentUtilityValue;
+			}
+		}
+		//Select max utility value of the possible actions (calculated from maxValue)
+		return minUtilityValue;
+	}
+
+	/**
+	 * Get utility of end state (or any other state)
+	 * @param s game state
+	 * @return state utility for current player
+	 */
+	public int getStateUtility(GameState s){
+		int[] tokenCount= s.countTokens();
+		if(currentPlayer == 1){
+			return tokenCount[0] - tokenCount[1];
+		} else {
+			return tokenCount[1] - tokenCount[0];
+		}
 	}
 	
 }
