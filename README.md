@@ -31,6 +31,10 @@ Build files and run test
 
 `$ gradle build`
 
+Run game 
+
+`$ gradle run`
+
 
 ## License
 
