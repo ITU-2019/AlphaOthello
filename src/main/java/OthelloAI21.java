@@ -14,6 +14,9 @@ public class OthelloAI21 implements IOthelloAI{
 	private int beta;
 	private final int CUT_OFF = 10;
 
+
+	private int memorizerUsed;
+	private int memorizerAdded;
 	private HashMap<Integer, Integer> memorizer;
 
 	/**
@@ -24,6 +27,8 @@ public class OthelloAI21 implements IOthelloAI{
 		currentPlayer = s.getPlayerInTurn();
 		breaked = 0;
 		nonBreaked = 0;
+		memorizerAdded = 0;
+		memorizerUsed = 0;
 		alpha = Integer.MIN_VALUE;
 		beta = Integer.MAX_VALUE;
 		return minimaxDecision(s);
@@ -52,8 +57,12 @@ public class OthelloAI21 implements IOthelloAI{
 			}
 		}
 		//Select max utility value of the possible actions (calculated from maxValue)
+		System.out.println("----------------------------");
 		System.out.println("Breaked: " + breaked);
 		System.out.println("Non-breaked: " + nonBreaked);
+		System.out.println("hashMapAdded: " + memorizerAdded);
+		System.out.println("hashMapUsed: " + memorizerUsed);
+		System.out.println("----------------------------");
 		return maxUtilityPosition;
 	}
 
@@ -81,10 +90,12 @@ public class OthelloAI21 implements IOthelloAI{
 
 			int hashCodeIndex =  getGameStateHashCode(gameState,depth);
 			if(memorizer.containsKey(hashCodeIndex)){
+				memorizerUsed++;
 				return memorizer.get(hashCodeIndex);
 			} else {
 				int passMoveResult = evaluateTreeNode(gameState, depth+1);
 				memorizer.put(hashCodeIndex, passMoveResult);
+				memorizerAdded++;
 				return passMoveResult;
 			}
 		}
@@ -95,10 +106,12 @@ public class OthelloAI21 implements IOthelloAI{
 
 			int hashCodeIndex =  getGameStateHashCode(gameState,depth);
 			if(memorizer.containsKey(hashCodeIndex)){
+				memorizerUsed++;
 				return memorizer.get(hashCodeIndex);
 			} else {
 				currentUtilityValue = evaluateTreeNode(gameState, depth+1);
 				memorizer.put(hashCodeIndex, currentUtilityValue);
+				memorizerAdded++;
 				//Player-specific functions
 				if(isMaxPlayer(s)){
 					optimalUtilityValue = (currentUtilityValue > optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
