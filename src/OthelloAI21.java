@@ -43,82 +43,11 @@ public class OthelloAI21 implements IOthelloAI{
 	}
 
 	/**
-	 * The utility value of current player in given game state
-	 * where it is the current player's turn.
-	 * @param s game state at this node of the game tree
-	 * @return a utility value
-	 */
-	public int maxValue(GameState s){
-		if(s.isFinished()){
-			return getStateUtility(s);
-		}
-
-		int maxUtilityValue = Integer.MIN_VALUE; //Minus infinity
-		int currentUtilityValue;
-
-		//Loop through all possible actions in game state s
-		ArrayList<Position> legalMoves = s.legalMoves();
-		if(legalMoves.size() == 0){
-			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
-			gameState.changePlayer();
-			return minValue(gameState);
-		}
-
-		for(Position position : legalMoves) {
-			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
-			gameState.insertToken(position);
-
-			currentUtilityValue = minValue(gameState);
-
-			//Find maximum position
-			if (currentUtilityValue > maxUtilityValue){
-				maxUtilityValue = currentUtilityValue;
-			}
-		}
-
-		//Select max utility value of the possible actions (calculated from maxValue)
-		return maxUtilityValue;
-	}
-
-	/**
 	 * The utility value of current player in a given state
-	 * where it is the opponent's turn.
 	 * @param s game state at this node of the game tree
 	 * @return a utility value
 	 * @see GameState
 	 */
-	public int minValue(GameState s){
-		if(s.isFinished()){
-			return getStateUtility(s);
-		}
-
-		int minUtilityValue = Integer.MAX_VALUE; //Max infinity
-		int currentUtilityValue;
-
-		//Loop through all possible actions in game state s
-		ArrayList<Position> legalMoves = s.legalMoves();
-
-		if(legalMoves.size() == 0){
-			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
-			gameState.changePlayer();
-			return maxValue(gameState);
-		}
-
-		for(Position position : legalMoves) {
-			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
-			gameState.insertToken(position);
-
-			currentUtilityValue = maxValue(gameState);
-
-			//Find maximum position
-			if (currentUtilityValue < minUtilityValue){
-				minUtilityValue = currentUtilityValue;
-			}
-		}
-		//Select max utility value of the possible actions (calculated from maxValue)
-		return minUtilityValue;
-	}
-
 	public int evaluateTreeNode(GameState s){
 		if(s.isFinished()){
 			return getStateUtility(s);
