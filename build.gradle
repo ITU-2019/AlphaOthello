@@ -31,7 +31,7 @@ task copyDocs2(type: Copy) {
 task run(dependsOn: [build], type: JavaExec) {
     main = 'Othello'
     classpath = sourceSets.main.runtimeClasspath
-    args 'Human', 'DumAI'
+    args 'Human', 'OthelloAI21', '6'
 }
 
 build.finalizedBy(copyDocs)
