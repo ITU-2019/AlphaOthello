@@ -5,6 +5,10 @@ A game AI for Othello.
 ![Othello](https://www.odense-marcipan.dk/imagegen.ashx?image=/media/986752/othellokage-1.jpg "Othello")
 
 
+## Compile
+
+javac *.java
+
 ## Run Commands
 
 Playing human against DumAI:
