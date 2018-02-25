@@ -9,6 +9,8 @@ public class OthelloAI21 implements IOthelloAI{
 	private int currentPlayer;
 	private int breaked;
 	private int nonBreaked;
+	private int alpha;
+	private int beta;
 
 	/**
 	 * Returns the optimal move decided by the AI
@@ -17,6 +19,8 @@ public class OthelloAI21 implements IOthelloAI{
 		currentPlayer = s.getPlayerInTurn();
 		breaked = 0;
 		nonBreaked = 0;
+		alpha = Integer.MIN_VALUE;
+		beta = Integer.MAX_VALUE;
 		return minimaxDecision(s);
 	}
 
@@ -34,7 +38,7 @@ public class OthelloAI21 implements IOthelloAI{
 		for(Position position : s.legalMoves()) {
 			GameState gameState = new GameState(s.getBoard(), currentPlayer);
 			gameState.insertToken(position);
-			currentUtilityValue = evaluateTreeNode(gameState, Integer.MIN_VALUE, Integer.MAX_VALUE);
+			currentUtilityValue = evaluateTreeNode(gameState);
 
 			//Find maximum position
 			if (currentUtilityValue > maxUtilityValue){
@@ -54,7 +58,7 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return a utility value
 	 * @see GameState
 	 */
-	public int evaluateTreeNode(GameState s, int alpha, int beta){
+	public int evaluateTreeNode(GameState s){
 		if(s.isFinished()){
 			return getStateUtility(s);
 		}
@@ -69,14 +73,14 @@ public class OthelloAI21 implements IOthelloAI{
 		if(legalMoves.size() == 0){
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.changePlayer();
-			return evaluateTreeNode(gameState, alpha, beta);
+			return evaluateTreeNode(gameState);
 		}
 
 		for(Position position : legalMoves) {
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.insertToken(position);
 
-			currentUtilityValue = evaluateTreeNode(gameState, alpha, beta);
+			currentUtilityValue = evaluateTreeNode(gameState);
 
 			//Player-specific functions
 			if(isMaxPlayer(s)){
