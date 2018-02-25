@@ -1,4 +1,4 @@
-# AlphaOthello
+# AlphaOthello [![Build Status](https://travis-ci.org/ITU-2019/AlphaOthello.svg?branch=develop)](https://travis-ci.org/ITU-2019/AlphaOthello)
 
 A game AI for Othello.
 
@@ -19,6 +19,17 @@ Playing human against DumAI:
 Playing AI1 against AI2 on a 6x6 board:
 
 `java Othello AI1 AI2 6`
+
+
+### Gradle
+
+Remove build folder
+
+`$ gradle clean`
+
+Build files and run test
+
+`$ gradle build`
 
 
 ## License

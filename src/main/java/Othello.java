@@ -1,3 +1,5 @@
+// package AlphaOthello;
+
 import javax.swing.*;
 
 import java.io.IOException;
@@ -12,9 +14,9 @@ import java.lang.reflect.*;
 public class Othello
 {
     public static String HUMAN_CMD = "human";
-	
+
 	/**
-     * Valid arguments: ai1 ai2 size 
+     * Valid arguments: ai1 ai2 size
      * Standard values for size (length of square board) is 8
      */
     public static void main(String[] args)
@@ -22,7 +24,7 @@ public class Othello
         IOthelloAI ai1 = null;
         IOthelloAI ai2 = null;
         int size = 8;
-        
+
         boolean err = args.length < 2;
         String errMsg = "You need to supply at least two arguments";
 
@@ -50,7 +52,7 @@ public class Othello
                 errMsg = "Your GameInstance constructor threw an exception: " + ite.toString();
                 err = true;
             }
-        	
+
             if(!err && ai1 == null && ai2 == null) {
                 errMsg = "Two human players not allowed.";
                 err = true;
@@ -59,24 +61,24 @@ public class Othello
             if(args.length >= 3) {
             	try {
             		size = Integer.parseInt(args[2]);
-            	
+
             		if ( size < 4 || size%2 != 0 ){
             			errMsg = "Board size should be an even number greater than 2";
             		err = true;
             		}
-            	
+
             	} catch(NumberFormatException nfe) {
             		errMsg = "Could not parse size value: " + args[2];
             		err = true;
             	}
             }
         }
-        
+
         if(err) {
         	printHelp(errMsg);
            	System.exit(1);
         }
-        
+
         try{
         	OthelloGUI g = new OthelloGUI(ai1, ai2, size, ai1 == null);
 
@@ -85,7 +87,7 @@ public class Othello
         	f.setSize((size+2)*100,(size+2)*100);
         	f.setTitle("Othello");
         	f.setDefaultCloseOperation (JFrame.EXIT_ON_CLOSE);
-        	f.getContentPane().add(g);    
+        	f.getContentPane().add(g);
         	f.setVisible(true);
         }
         catch (IOException e){
@@ -117,12 +119,12 @@ public class Othello
      * @param cmdParam String from the command line that should be a path to a java class implementing IOthelloLogic
      * @throws TBD
      */
-    public static IOthelloAI parseGameLogicParam(String cmdParam) 
-            throws ClassNotFoundException, NoSuchMethodException, 
+    public static IOthelloAI parseGameLogicParam(String cmdParam)
+            throws ClassNotFoundException, NoSuchMethodException,
                    InstantiationException, IllegalAccessException,
-                   InvocationTargetException {    	
+                   InvocationTargetException {
     	IOthelloAI retGL = null;
-    	if(!cmdParam.equalsIgnoreCase(HUMAN_CMD)) 
+    	if(!cmdParam.equalsIgnoreCase(HUMAN_CMD))
             retGL = (IOthelloAI)Class.forName(cmdParam).getConstructor().newInstance();
     	return retGL;
     }

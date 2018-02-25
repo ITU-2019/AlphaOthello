@@ -1,3 +1,5 @@
+// package AlphaOthello;
+
 /**
  * Class for representing a position on a 2-dimensional game board
  * @author Mai Ajspur
@@ -5,25 +7,25 @@
  */
 public class Position{
 	int col;
-	int row;		
-		
+	int row;
+
 	public Position(int col, int row){
 		this.col = col;
 		this.row = row;
 	}
-	
+
 	@Override
     public boolean equals(Object o) {
-        if ( o == this ) 
+        if ( o == this )
             return true;
- 
-        if ( !(o instanceof Position) ) 
+
+        if ( !(o instanceof Position) )
             return false;
-         
+
         Position p = (Position) o;
         return p.row == this.row && p.col == this.col;
     }
-	
+
 	@Override
 	public String toString(){
 		return "(" + col +", " + row + ")";
