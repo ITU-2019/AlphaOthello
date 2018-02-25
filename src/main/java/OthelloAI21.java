@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * A super-complex OthelloAI-implementation using alpha-beta pruning.
@@ -9,6 +10,8 @@ public class OthelloAI21 implements IOthelloAI{
 	private int currentPlayer;
 	private int breaked;
 	private int nonBreaked;
+
+	private HashMap<Integer, Integer> memorizer;
 
 	/**
 	 * Returns the optimal move decided by the AI
@@ -69,34 +72,47 @@ public class OthelloAI21 implements IOthelloAI{
 		if(legalMoves.size() == 0){
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.changePlayer();
-			return evaluateTreeNode(gameState, alpha, beta);
+			int hashCodeIndex =  getGameStateHashCode(gameState);
+			if(memorizer.containsKey(hashCodeIndex)){
+				return memorizer.get(hashCodeIndex);
+			} else {
+				int result = evaluateTreeNode(gameState, alpha, beta);
+				memorizer.put(hashCodeIndex, result);
+				return result;
+			}
 		}
 
 		for(Position position : legalMoves) {
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.insertToken(position);
 
-			currentUtilityValue = evaluateTreeNode(gameState, alpha, beta);
+			int hashCodeIndex =  getGameStateHashCode(gameState);
+			if(memorizer.containsKey(hashCodeIndex)){
+				return memorizer.get(hashCodeIndex);
+			} else {
+				currentUtilityValue = evaluateTreeNode(gameState, alpha, beta);
+				memorizer.put(hashCodeIndex, currentUtilityValue);
+				//Player-specific functions
+				if(isMaxPlayer(s)){
+					optimalUtilityValue = (currentUtilityValue > optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
+					if (currentUtilityValue >= beta) {
+						breaked += 1;
+						return currentUtilityValue; //Break recursion based on beta-value
+					} else {
+						nonBreaked += 1;
+					}
+					alpha = (alpha > currentUtilityValue) ? alpha : currentUtilityValue;
+				} else if (!isMaxPlayer(s)){
+					optimalUtilityValue = (currentUtilityValue < optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
+					if (currentUtilityValue <= alpha) {
+						breaked += 1;
+						return currentUtilityValue; //Break recursion based on alpha-value
+					} else {
+						nonBreaked += 1;
+					}
+					beta = (beta < currentUtilityValue) ? beta : currentUtilityValue;
+				}
 
-			//Player-specific functions
-			if(isMaxPlayer(s)){
-				optimalUtilityValue = (currentUtilityValue > optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
-				if (currentUtilityValue >= beta) {
-					breaked += 1;
-					return currentUtilityValue; //Break recursion based on beta-value
-				} else {
-					nonBreaked += 1;
-				}
-				alpha = (alpha > currentUtilityValue) ? alpha : currentUtilityValue;
-			} else if (!isMaxPlayer(s)){
-				optimalUtilityValue = (currentUtilityValue < optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
-				if (currentUtilityValue <= alpha) {
-					breaked += 1;
-					return currentUtilityValue; //Break recursion based on alpha-value
-				} else {
-					nonBreaked += 1;
-				}
-				beta = (beta < currentUtilityValue) ? beta : currentUtilityValue;
 			}
 
 		}
@@ -120,6 +136,10 @@ public class OthelloAI21 implements IOthelloAI{
 		} else {
 			return tokenCount[1] - tokenCount[0];
 		}
+	}
+
+	public int getGameStateHashCode(GameState s){
+		return s.getBoard().hashCode() + s.getPlayerInTurn();
 	}
 
 }
