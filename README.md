@@ -7,7 +7,7 @@ A game AI for Othello.
 
 ## Compile
 
-javac *.java
+`javac *.java`
 
 ## Run Commands
 
