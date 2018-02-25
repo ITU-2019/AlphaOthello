@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Arrays;
 
 /**
  * A super-complex OthelloAI-implementation using alpha-beta pruning.
@@ -17,18 +18,21 @@ public class OthelloAI21 implements IOthelloAI{
 
 	private int memorizerUsed;
 	private int memorizerAdded;
-	private HashMap<Integer, Integer> memorizer;
+	private HashMap<String, Integer> memorizer;
+
+	public OthelloAI21(){
+		memorizer = new HashMap<>();
+		memorizerAdded = 0;
+		memorizerUsed = 0;
+	}
 
 	/**
 	 * Returns the optimal move decided by the AI
 	 */
 	public Position decideMove(GameState s){
-		memorizer = new HashMap<>();
 		currentPlayer = s.getPlayerInTurn();
 		breaked = 0;
 		nonBreaked = 0;
-		memorizerAdded = 0;
-		memorizerUsed = 0;
 		alpha = Integer.MIN_VALUE;
 		beta = Integer.MAX_VALUE;
 		return minimaxDecision(s);
@@ -88,7 +92,7 @@ public class OthelloAI21 implements IOthelloAI{
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.changePlayer();
 
-			int hashCodeIndex =  getGameStateHashCode(gameState,depth);
+			String hashCodeIndex =  getGameStateHashCode(gameState,depth);
 			if(memorizer.containsKey(hashCodeIndex)){
 				memorizerUsed++;
 				return memorizer.get(hashCodeIndex);
@@ -104,7 +108,7 @@ public class OthelloAI21 implements IOthelloAI{
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.insertToken(position);
 
-			int hashCodeIndex =  getGameStateHashCode(gameState,depth);
+			String hashCodeIndex =  getGameStateHashCode(gameState, depth);
 			if(memorizer.containsKey(hashCodeIndex)){
 				memorizerUsed++;
 				return memorizer.get(hashCodeIndex);
@@ -156,8 +160,13 @@ public class OthelloAI21 implements IOthelloAI{
 		}
 	}
 
-	public int getGameStateHashCode(GameState s, int depth){
-		return s.getBoard().hashCode() + s.getPlayerInTurn();
+	public String getGameStateHashCode(GameState s, int depth){
+		int[][] board = s.getBoard();
+		String boardString = "" + depth + s.getPlayerInTurn();
+		for(int[] r : board){
+			boardString += Arrays.toString(r);
+		}
+		return boardString;
 	}
 
 }
