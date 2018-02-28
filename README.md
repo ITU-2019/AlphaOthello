@@ -45,7 +45,7 @@ Build files and without running tests
 $ gradle build -x test
 ```
 
-Run game
+Run game (change `build.gradle` to change starting parameters)
 
 ```bash
 $ gradle run
