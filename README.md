@@ -7,33 +7,49 @@ A game AI for Othello.
 
 ## Compile
 
-`javac *.java`
+```bash
+javac *.java
+```
 
 ## Run Commands
 
 Playing human against DumAI:
 
-`java Othello human DumAI`
-
+```bash
+java Othello human DumAI
+```
 
 Playing AI1 against AI2 on a 6x6 board:
 
-`java Othello AI1 AI2 6`
-
+```bash
+java Othello AI1 AI2 6
+```
 
 ### Gradle
 
 Remove build folder
 
-`$ gradle clean`
+```bash
+$ gradle clean
+```
 
 Build files and run test
 
-`$ gradle build`
+```bash
+$ gradle build
+```
 
-Run game 
+Build files and without running tests
 
-`$ gradle run`
+```bash
+$ gradle build -x test
+```
+
+Run game
+
+```bash
+$ gradle run
+```
 
 
 ## License
