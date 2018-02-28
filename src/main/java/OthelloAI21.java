@@ -15,15 +15,10 @@ public class OthelloAI21 implements IOthelloAI{
 	private int beta;
 	private final int CUT_OFF = 9;
 
+	Memorizer memo;
 
-	private int memorizerUsed;
-	private int memorizerAdded;
-	private HashMap<String, Integer> memorizer;
-
-	public OthelloAI21(){
-		memorizer = new HashMap<String, Integer>();
-		memorizerAdded = 0;
-		memorizerUsed = 0;
+	public OthelloAI21() {
+		memo = new Memorizer();
 	}
 
 	/**
@@ -79,9 +74,9 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @see GameState
 	 */
 	public int evaluateTreeNode(GameState s, int depth){
-		if(s.isFinished()){
+		if (s.isFinished()) {
 			return getStateUtility(s);
-		} else if(depth >= CUT_OFF){
+		} else if(depth >= CUT_OFF) {
 			return evaluateState(s);
 		}
 
@@ -91,62 +86,72 @@ public class OthelloAI21 implements IOthelloAI{
 		//Loop through all possible actions in game state s
 		ArrayList<Position> legalMoves = s.legalMoves();
 
-		//If pass
-		if(legalMoves.size() == 0){
+		// Check if there is any legal moves from this state.
+		if (legalMoves.size() == 0) {
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.changePlayer();
 
-			String hashCodeIndex =  getGameStateHashCode(gameState,depth);
-			if(memorizer.containsKey(hashCodeIndex)){
-				memorizerUsed++;
-				return memorizer.get(hashCodeIndex);
+			String hash = memo.getGameStateHashCode(gameState, depth);
+			if (memo.exist(hash)) {
+				return memo.get(hash);
 			} else {
-				int passMoveResult = evaluateTreeNode(gameState, depth+1);
-				memorizer.put(hashCodeIndex, passMoveResult);
-				memorizerAdded++;
+				int passMoveResult = evaluateTreeNode(gameState, depth + 1);
+				memo.put(hash, passMoveResult);
 				return passMoveResult;
 			}
 		}
 
-		for(Position position : legalMoves) {
+		// Loop over valid player moves.
+		for (Position position : legalMoves) {
 			GameState gameState = new GameState(s.getBoard(), s.getPlayerInTurn());
 			gameState.insertToken(position);
 
-			String hashCodeIndex =  getGameStateHashCode(gameState, depth);
-			if(memorizer.containsKey(hashCodeIndex)){
-				memorizerUsed++;
-				return memorizer.get(hashCodeIndex);
+			String hash = memo.getGameStateHashCode(gameState, depth);
+			if (memo.exist(hash)) {
+				return memo.get(hash);
 			} else {
 				currentUtilityValue = evaluateTreeNode(gameState, depth+1);
-				memorizer.put(hashCodeIndex, currentUtilityValue);
-				memorizerAdded++;
-				//Player-specific functions
-				if(isMaxPlayer(s)){
-					optimalUtilityValue = (currentUtilityValue > optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
-					if (currentUtilityValue >= beta) {
-						breaked += 1;
-						return currentUtilityValue; //Break recursion based on beta-value
-					} else {
-						nonBreaked += 1;
-					}
-					alpha = (alpha > currentUtilityValue) ? alpha : currentUtilityValue;
-				} else if (!isMaxPlayer(s)){
-					optimalUtilityValue = (currentUtilityValue < optimalUtilityValue) ? currentUtilityValue : optimalUtilityValue;
-					if (currentUtilityValue <= alpha) {
-						breaked += 1;
-						return currentUtilityValue; //Break recursion based on alpha-value
-					} else {
-						nonBreaked += 1;
-					}
+				memo.put(hash, currentUtilityValue);
+
+				// Player-specific functions
+				optimalUtilityValue = getOptimalUtility(s, currentUtilityValue, optimalUtilityValue);
+				Integer currentUtility = getCurrentUtility(s, currentUtilityValue, optimalUtilityValue);
+				if (currentUtility != null) { // Current utility is 'better', return utility  
+					return (int) currentUtility;
 				}
 			}
-			
 		}
+
 		//Select max utility value of the possible actions (calculated from maxValue)
 		return optimalUtilityValue;
 	}
 
-	private boolean isMaxPlayer(GameState s){
+	public int getOptimalUtility(GameState gs, int currentUtility, int optimalUtility) {
+		if (isMaxPlayer(gs)) {
+			optimalUtility = (currentUtility > optimalUtility) ? currentUtility : optimalUtility;
+		} else {
+			optimalUtility = (currentUtility < optimalUtility) ? currentUtility : optimalUtility;
+		}
+
+		return optimalUtility;
+	}
+
+	public Integer getCurrentUtility(GameState gs, int currentUtility, int optimalUtility) {
+		if (isMaxPlayer(gs)) {
+			if (currentUtility >= beta) {
+				return currentUtility; //Break recursion based on beta-value
+			}
+			alpha = (alpha > currentUtility) ? alpha : currentUtility;
+		} else {
+			if (currentUtility <= alpha) {
+				return currentUtility; //Break recursion based on alpha-value
+			}
+		}
+
+		return null;
+	}
+
+	private boolean isMaxPlayer(GameState s) {
 		return s.getPlayerInTurn() == currentPlayer;
 	}
 
@@ -155,9 +160,9 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @param s game state
 	 * @return state utility for current player
 	 */
-	public int getStateUtility(GameState s){
-		int[] tokenCount= s.countTokens();
-		if(currentPlayer == 1){
+	public int getStateUtility(GameState s) {
+		int[] tokenCount = s.countTokens();
+		if (currentPlayer == 1) {
 			return utilityTranslation(tokenCount[0] - tokenCount[1]);
 
 		} else {
@@ -166,9 +171,9 @@ public class OthelloAI21 implements IOthelloAI{
 	}
 
 	private int utilityTranslation(int tokenDifference){
-		if(tokenDifference > 0){
+		if (tokenDifference > 0) {
 			return 100;
-		} else if(tokenDifference < 0){
+		} else if(tokenDifference < 0) {
 			return -100;
 		} else {
 			return 0;
@@ -184,7 +189,7 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return
 	 */
 	public int evaluateState(GameState s) {
-		return sigmoid(strongPositions(s)+getStateUtility(s)/100);
+		return sigmoid(strongPositions(s) + getStateUtility(s) / 100);
 		//return getStateUtility(s) + strongPositions(s);
 		/* //replace with clever evaluation:
 		return getStateUtility(s);
@@ -202,7 +207,7 @@ public class OthelloAI21 implements IOthelloAI{
 	}
 
 	private int sigmoid(double x) {
-		Double value = (1/( 1 + Math.pow(Math.E,(-1*x))))*10 + 0.5d;
+		Double value = (1 / ( 1 + Math.pow(Math.E, (-1 * x)))) * 10 + 0.5d;
 		return value.intValue();
 	}
 
@@ -210,44 +215,44 @@ public class OthelloAI21 implements IOthelloAI{
 		int strongPositionNum = 0;
 		int playerNum = currentPlayer - 1;
 		int[][] board = s.getBoard();
-		for(int[] boardR : board){
-			if(boardR[0] == playerNum){
+		for (int[] boardR : board) {
+			if (boardR[0] == playerNum) {
 				strongPositionNum += 1;
 			}
-			if(boardR[boardR.length-1] == playerNum){
-				strongPositionNum += 1;
-			}
-		}
-
-		for(int boardC : board[0]){
-			if(boardC == playerNum){
+			if (boardR[boardR.length-1] == playerNum) {
 				strongPositionNum += 1;
 			}
 		}
 
-		for(int boardC : board[board[0].length-1]){
-			if(boardC == playerNum){
+		for (int boardC : board[0]) {
+			if (boardC == playerNum) {
 				strongPositionNum += 1;
 			}
 		}
 
-		if(board[0][0] == playerNum){
+		for (int boardC : board[board[0].length - 1]) {
+			if (boardC == playerNum) {
+				strongPositionNum += 1;
+			}
+		}
+
+		if (board[0][0] == playerNum) {
 			strongPositionNum += 2;
 		}
-		if(board[0][board[0].length-1] == playerNum){
+		if (board[0][board[0].length - 1] == playerNum) {
 			strongPositionNum += 2;
 		}
-		if(board[board[0].length-1][0] == playerNum){
+		if (board[board[0].length - 1][0] == playerNum) {
 			strongPositionNum += 2;
 		}
-		if(board[board[0].length-1][board[0].length-1] == playerNum){
+		if (board[board[0].length - 1][board[0].length - 1] == playerNum) {
 			strongPositionNum += 2;
 		}
 
 		return strongPositionNum;
 	}
 
-	private int emptySquares(GameState s){
+	private int emptySquares(GameState s) {
 		int[][] board = s.getBoard();
 
 		int tokens = 0;
@@ -259,14 +264,50 @@ public class OthelloAI21 implements IOthelloAI{
 		}
 		return tokens;
 	}
+}
 
-	public String getGameStateHashCode(GameState s, int depth){
-		int[][] board = s.getBoard();
-		String boardString = "" + depth + s.getPlayerInTurn();
-		for(int[] r : board){
-			boardString += Arrays.toString(r);
-		}
-		return boardString;
+
+class Memorizer {
+	private int memorizerUsed;
+	private int memorizerAdded;
+	private HashMap<String, Integer> memorizer;
+
+	public Memorizer() {
+		memorizer = new HashMap<String, Integer>();
+		memorizerAdded = 0;
+		memorizerUsed = 0;
 	}
 
+	public int get(GameState gs, int depth) {
+		String hash = getGameStateHashCode(gs, depth);
+		return get(hash);
+	}
+
+	public boolean exist(String hash) {
+		if (memorizer.containsKey(hash)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public int get(String hash) {
+		memorizerUsed++;
+		return memorizer.get(hash);
+	}
+
+	public void put(String hash, int value) {
+		memorizer.put(hash, value);
+		memorizerAdded++;
+	}
+
+	public String getGameStateHashCode(GameState s, int depth) {
+		int[][] board = s.getBoard();
+		String boardString = "" + depth + s.getPlayerInTurn();
+		for (int[] r : board) {
+			boardString += Arrays.toString(r);
+		}
+
+		return boardString;
+	}
 }
