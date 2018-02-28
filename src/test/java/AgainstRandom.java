@@ -7,8 +7,8 @@ public class AgainstRandom {
     private final int RunsVS4by4 = 100;
     private final int RunsVS5by5 = 100;
     private final int RunsVS6by6 = 50;
-    private final int RunsVS7by7 = 26;
-    private final int RunsVS8by8 = 16;
+    private final int RunsVS7by7 = 50;
+    private final int RunsVS8by8 = 50;
     
     
     @Test

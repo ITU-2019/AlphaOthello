@@ -116,7 +116,7 @@ public class OthelloAI21 implements IOthelloAI{
 				// Player-specific functions
 				optimalUtilityValue = getOptimalUtility(s, currentUtilityValue, optimalUtilityValue);
 				Integer currentUtility = getCurrentUtility(s, currentUtilityValue, optimalUtilityValue);
-				if (currentUtility != null) { // Current utility is 'better', return utility  
+				if (currentUtility != null) { // Current utility is 'better', return utility
 					return (int) currentUtility;
 				}
 			}
@@ -161,22 +161,14 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return state utility for current player
 	 */
 	public int getStateUtility(GameState s) {
-		int[] tokenCount = s.countTokens();
+		int[] tokenCount= s.countTokens();
+		if (tokenCount[0] == tokenCount[1]) return 0;
 		if (currentPlayer == 1) {
-			return utilityTranslation(tokenCount[0] - tokenCount[1]);
-
+			if(tokenCount[0] > tokenCount[1]) return 100;
+			else return -100;
 		} else {
-			return utilityTranslation(tokenCount[1] - tokenCount[0]);
-		}
-	}
-
-	private int utilityTranslation(int tokenDifference){
-		if (tokenDifference > 0) {
-			return 100;
-		} else if(tokenDifference < 0) {
-			return -100;
-		} else {
-			return 0;
+			if (tokenCount[0] > tokenCount[1]) return -100;
+			else return 100;
 		}
 	}
 
@@ -189,7 +181,15 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return
 	 */
 	public int evaluateState(GameState s) {
-		return sigmoid(strongPositions(s) + getStateUtility(s) / 100);
+		//return sigmoid(strongPositions(s)+getStateUtility(s)/100);
+		int[] tokenCount= s.countTokens();
+
+		if (currentPlayer == 1) {
+			return tokenCount[0] - tokenCount[1] + strongPositions(s);
+		} else {
+			return tokenCount[1] - tokenCount[2] + strongPositions(s);
+		}
+
 		//return getStateUtility(s) + strongPositions(s);
 		/* //replace with clever evaluation:
 		return getStateUtility(s);
@@ -206,6 +206,7 @@ public class OthelloAI21 implements IOthelloAI{
 
 	}
 
+	// TODO: Tests sigmoid
 	private int sigmoid(double x) {
 		Double value = (1 / ( 1 + Math.pow(Math.E, (-1 * x)))) * 10 + 0.5d;
 		return value.intValue();
@@ -213,39 +214,38 @@ public class OthelloAI21 implements IOthelloAI{
 
 	private int strongPositions(GameState s){
 		int strongPositionNum = 0;
-		int playerNum = currentPlayer - 1;
 		int[][] board = s.getBoard();
 		for (int[] boardR : board) {
-			if (boardR[0] == playerNum) {
+			if (boardR[0] == currentPlayer) {
 				strongPositionNum += 1;
 			}
-			if (boardR[boardR.length-1] == playerNum) {
+			if (boardR[boardR.length-1] == currentPlayer) {
 				strongPositionNum += 1;
 			}
 		}
 
 		for (int boardC : board[0]) {
-			if (boardC == playerNum) {
+			if (boardC == currentPlayer) {
 				strongPositionNum += 1;
 			}
 		}
 
 		for (int boardC : board[board[0].length - 1]) {
-			if (boardC == playerNum) {
+			if (boardC == currentPlayer) {
 				strongPositionNum += 1;
 			}
 		}
 
-		if (board[0][0] == playerNum) {
+		if (board[0][0] == currentPlayer) {
 			strongPositionNum += 2;
 		}
-		if (board[0][board[0].length - 1] == playerNum) {
+		if (board[0][board[0].length - 1] == currentPlayer) {
 			strongPositionNum += 2;
 		}
-		if (board[board[0].length - 1][0] == playerNum) {
+		if (board[board[0].length - 1][0] == currentPlayer) {
 			strongPositionNum += 2;
 		}
-		if (board[board[0].length - 1][board[0].length - 1] == playerNum) {
+		if (board[board[0].length - 1][board[0].length - 1] == currentPlayer) {
 			strongPositionNum += 2;
 		}
 
@@ -264,50 +264,50 @@ public class OthelloAI21 implements IOthelloAI{
 		}
 		return tokens;
 	}
-}
 
+	class Memorizer {
+		private int memorizerUsed;
+		private int memorizerAdded;
+		private HashMap<String, Integer> memorizer;
 
-class Memorizer {
-	private int memorizerUsed;
-	private int memorizerAdded;
-	private HashMap<String, Integer> memorizer;
-
-	public Memorizer() {
-		memorizer = new HashMap<String, Integer>();
-		memorizerAdded = 0;
-		memorizerUsed = 0;
-	}
-
-	public int get(GameState gs, int depth) {
-		String hash = getGameStateHashCode(gs, depth);
-		return get(hash);
-	}
-
-	public boolean exist(String hash) {
-		if (memorizer.containsKey(hash)) {
-			return true;
+		public Memorizer() {
+			memorizer = new HashMap<String, Integer>();
+			memorizerAdded = 0;
+			memorizerUsed = 0;
 		}
 
-		return false;
-	}
-
-	public int get(String hash) {
-		memorizerUsed++;
-		return memorizer.get(hash);
-	}
-
-	public void put(String hash, int value) {
-		memorizer.put(hash, value);
-		memorizerAdded++;
-	}
-
-	public String getGameStateHashCode(GameState s, int depth) {
-		int[][] board = s.getBoard();
-		String boardString = "" + depth + s.getPlayerInTurn();
-		for (int[] r : board) {
-			boardString += Arrays.toString(r);
+		public int get(GameState gs, int depth) {
+			String hash = getGameStateHashCode(gs, depth);
+			return get(hash);
 		}
 
-		return boardString;
+		public boolean exist(String hash) {
+			if (memorizer.containsKey(hash)) {
+				return true;
+			}
+
+			return false;
+		}
+
+		public int get(String hash) {
+			memorizerUsed++;
+			return memorizer.get(hash);
+		}
+
+		public void put(String hash, int value) {
+			memorizer.put(hash, value);
+			memorizerAdded++;
+		}
+
+		public String getGameStateHashCode(GameState s, int depth) {
+			int[][] board = s.getBoard();
+			String boardString = "" + depth + s.getPlayerInTurn();
+			for (int[] r : board) {
+				boardString += Arrays.toString(r);
+			}
+
+			return boardString;
+		}
 	}
+
 }
