@@ -13,7 +13,7 @@ public class OthelloAI21 implements IOthelloAI{
 	private int nonBreaked;
 	private int alpha;
 	private int beta;
-	private final int CUT_OFF = 10;
+	private final int CUT_OFF = 9;
 
 
 	private int memorizerUsed;
@@ -21,7 +21,7 @@ public class OthelloAI21 implements IOthelloAI{
 	private HashMap<String, Integer> memorizer;
 
 	public OthelloAI21(){
-		memorizer = new HashMap<>();
+		memorizer = new HashMap<String, Integer>();
 		memorizerAdded = 0;
 		memorizerUsed = 0;
 	}
@@ -79,8 +79,10 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @see GameState
 	 */
 	public int evaluateTreeNode(GameState s, int depth){
-		if(s.isFinished() || depth >= CUT_OFF){
+		if(s.isFinished()){
 			return getStateUtility(s);
+		} else if(depth >= CUT_OFF){
+			return evaluateState(s);
 		}
 
 		int optimalUtilityValue = isMaxPlayer(s) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
@@ -156,10 +158,106 @@ public class OthelloAI21 implements IOthelloAI{
 	public int getStateUtility(GameState s){
 		int[] tokenCount= s.countTokens();
 		if(currentPlayer == 1){
-			return tokenCount[0] - tokenCount[1];
+			return utilityTranslation(tokenCount[0] - tokenCount[1]);
+
 		} else {
-			return tokenCount[1] - tokenCount[0];
+			return utilityTranslation(tokenCount[1] - tokenCount[0]);
 		}
+	}
+
+	private int utilityTranslation(int tokenDifference){
+		if(tokenDifference > 0){
+			return 100;
+		} else if(tokenDifference < 0){
+			return -100;
+		} else {
+			return 0;
+		}
+	}
+
+	/**
+	 * Evaluates the current state.
+	 * This is used with a cut-off value to make the AI faster.
+	 * This is done by cutting off the evaluation of the game tree
+	 * before reaching a terminal state.
+	 * @param s game state to evaluate
+	 * @return
+	 */
+	public int evaluateState(GameState s) {
+		return sigmoid(strongPositions(s)+getStateUtility(s)/100);
+		//return getStateUtility(s) + strongPositions(s);
+		/* //replace with clever evaluation:
+		return getStateUtility(s);
+
+		//f_1 empty squares modulo 2
+		int emptySquares = emptySquares(s);
+
+
+		//f_3 moves for me vs moves for opponent
+		int[] tokens = s.countTokens();
+		int moveValue = tokens[0] - tokens[1];
+		int moves = (currentPlayer == 1) ? moveValue : -moveValue; */
+
+
+	}
+
+	private int sigmoid(double x) {
+		Double value = (1/( 1 + Math.pow(Math.E,(-1*x))))*10 + 0.5d;
+		return value.intValue();
+	}
+
+	private int strongPositions(GameState s){
+		int strongPositionNum = 0;
+		int playerNum = currentPlayer - 1;
+		int[][] board = s.getBoard();
+		for(int[] boardR : board){
+			if(boardR[0] == playerNum){
+				strongPositionNum += 1;
+			}
+			if(boardR[boardR.length-1] == playerNum){
+				strongPositionNum += 1;
+			}
+		}
+
+		for(int boardC : board[0]){
+			if(boardC == playerNum){
+				strongPositionNum += 1;
+			}
+		}
+
+		for(int boardC : board[board[0].length-1]){
+			if(boardC == playerNum){
+				strongPositionNum += 1;
+			}
+		}
+
+		if(board[0][0] == playerNum){
+			strongPositionNum += 2;
+		}
+		if(board[0][board[0].length-1] == playerNum){
+			strongPositionNum += 2;
+		}
+		if(board[board[0].length-1][0] == playerNum){
+			strongPositionNum += 2;
+		}
+		if(board[board[0].length-1][board[0].length-1] == playerNum){
+			strongPositionNum += 2;
+		}
+
+		return strongPositionNum;
+	}
+
+	private int emptySquares(GameState s){
+		int[][] board = s.getBoard();
+
+		int tokens = 0;
+		for (int[] aBoard : board) {
+			for (int j = 0; j < board.length; j++) {
+				if (aBoard[j] == 0)
+					tokens++;
+			}
+		}
+		return tokens;
 	}
 
 	public String getGameStateHashCode(GameState s, int depth){
