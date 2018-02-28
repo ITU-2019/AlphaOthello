@@ -61,12 +61,14 @@ public class OthelloAI21 implements IOthelloAI{
 			}
 		}
 		//Select max utility value of the possible actions (calculated from maxValue)
+		/*
 		System.out.println("----------------------------");
 		System.out.println("Breaked: " + breaked);
 		System.out.println("Non-breaked: " + nonBreaked);
 		System.out.println("hashMapAdded: " + memorizerAdded);
 		System.out.println("hashMapUsed: " + memorizerUsed);
 		System.out.println("----------------------------");
+		*/
 		return maxUtilityPosition;
 	}
 
