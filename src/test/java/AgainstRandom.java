@@ -7,10 +7,10 @@ public class AgainstRandom {
     private final int RunsVS4by4 = 100;
     private final int RunsVS5by5 = 100;
     private final int RunsVS6by6 = 50;
-    private final int RunsVS7by7 = 50;
-    private final int RunsVS8by8 = 50;
+    private final int RunsVS7by7 = 26;
+    private final int RunsVS8by8 = 10;
     
-    
+    /*
     @Test
     public void test4by4vsRandom() {
         int wins = 0;
@@ -71,7 +71,7 @@ public class AgainstRandom {
 
         long startTime = System.nanoTime();
         for (int i = 0; i < RunsVS7by7; i++) {
-            int[] points = TestGame.playGame(new GameState(6, 1), new OthelloAI21(), new RandomAI());
+            int[] points = TestGame.playGame(new GameState(7, 1), new OthelloAI21(), new RandomAI());
             if (points[0] > points[1]) {
                 wins++;
             }
@@ -82,15 +82,34 @@ public class AgainstRandom {
 
         assertTrue(wins > (RunsVS7by7 / 2));
     }
+    */
 
     
     @Test
-    public void test8by8vsRandom() {
+    public void test8by8vsRandomWhite() {
         int wins = 0;
 
         long startTime = System.nanoTime();
         for (int i = 0; i < RunsVS8by8; i++) {
-            int[] points = TestGame.playGame(new GameState(6, 1), new OthelloAI21(), new RandomAI());
+            int[] points = TestGame.playGame(new GameState(8, 1), new OthelloAI21(), new RandomAI());
+            if (points[0] > points[1]) {
+                wins++;
+            }
+        }
+        long endTime = System.nanoTime();
+
+        System.out.println("Wins: " + wins + " Losses: " + (RunsVS8by8 - wins) + " --- Took " + ((endTime - startTime) / 1000000000) + "s");
+
+        assertTrue(wins > (RunsVS8by8 / 2));
+    }
+
+    @Test
+    public void test8by8vsRandomBlack() {
+        int wins = 0;
+
+        long startTime = System.nanoTime();
+        for (int i = 0; i < RunsVS8by8; i++) {
+            int[] points = TestGame.playGame(new GameState(8, 2), new OthelloAI21(), new RandomAI());
             if (points[0] > points[1]) {
                 wins++;
             }

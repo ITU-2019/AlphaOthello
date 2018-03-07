@@ -19,9 +19,6 @@ public class GameStateTest {
         Position p1 = gs.legalMoves().get(0);
         Position p2 = ai.decideMove(gs);
 
-        System.out.println(p1);
-        System.out.println(p2);
-
         assertTrue(p1.equals(p2));
     }
 }
