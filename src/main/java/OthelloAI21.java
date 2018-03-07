@@ -212,6 +212,40 @@ public class OthelloAI21 implements IOthelloAI{
 		return value.intValue();
 	}
 
+	/*
+	private int strongPositionsBuro(GameState s){
+		int positionSum = 0;
+		int[][] board = s.getBoard();
+		positionSum += diag4(board);
+	}
+
+	private int diag4(int[][] board){
+		for(int i = 3; i >= 0; i--){
+			for(int j = 0; 0 < 4; j++){
+
+			}
+		}
+	}
+	*/
+
+	public int[][] genDiag(int n, int[][] board) {
+		int [][] pos = new int[n][2];
+
+		//First corner
+		for (int i = 0; i < n; i++) {
+			pos[i] = new int[]{i, n - i - 1};
+		}
+
+		//Second corner
+		/*
+		for (int i = 0; i < n; i++) {
+			pos[i] = new int[]{board.length - i - 1, n - i - 1};
+		}*/
+
+		return pos;
+
+	}
+
 	private int strongPositions(GameState s){
 		int strongPositionNum = 0;
 		int[][] board = s.getBoard();

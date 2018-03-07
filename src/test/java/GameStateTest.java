@@ -24,4 +24,18 @@ public class GameStateTest {
 
         assertTrue(p1.equals(p2));
     }
+
+    @Test
+	public void pattern() {
+    	GameState gs = new GameState(8, 1);
+
+    	OthelloAI21 ai = new OthelloAI21();
+		int[][] r = ai.genDiag(4, gs.getBoard());
+    	for(int i = 0; i < 1; i++){
+    		for(int j = 0; j < 4; j++){
+    			System.out.println(r[i][j]);
+			}
+		}
+
+	}
 }
