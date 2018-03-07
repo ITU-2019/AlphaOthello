@@ -243,7 +243,7 @@ public class OthelloAI21 implements IOthelloAI{
 	public int getStateUtility(GameState s) {
 		int state = boardValue(s);
 		int win = 1000000;
-		int loss = state / 2;
+		int loss = state * 2; // A loss have negative value to we amplify it with x2
 
 		int[] tokenCount= s.countTokens();
 		if (tokenCount[0] == tokenCount[1]) return 0;
