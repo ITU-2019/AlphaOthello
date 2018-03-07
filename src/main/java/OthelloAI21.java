@@ -1,5 +1,7 @@
 import java.util.ArrayList;
-
+import java.util.HashMap;
+import java.util.Arrays;
+import java.lang.*;
 
 /**
  * A super-complex OthelloAI-implementation using alpha-beta pruning.
@@ -154,20 +156,103 @@ public class OthelloAI21 implements IOthelloAI{
 		return s.getPlayerInTurn() == currentPlayer;
 	}
 
+	public int boardValue (GameState s) {
+		// @see http://mnemstudio.org/game-reversi-example-2.htm
+		int base = 10;
+		int region4 =(int) Math.pow(base, 1),  // Before-corners
+			region2 =(int) Math.pow(base, 2),  // Before-edges
+		    region1 =(int) Math.pow(base, 3),  // Middle
+			region3 =(int) Math.pow(base, 4), // Edges
+			region5 =(int) Math.pow(base, 5); // Corners
+
+		int[][] board = s.getBoard();
+		int len = board.length - 1;
+
+		// The two players.
+		int p1 = 0;
+		int p2 = 0;
+
+		// Loop over all board tiles.
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board.length; j++) {
+				int val = 0;
+				if ( // Corner
+					(i == 0 && j == 0) ||
+					(i == len && j == len) ||
+					(i == 0 && j == len) ||
+					(j == 0 && i == len)
+				) {
+					val = region5;
+				} else if ( // Edges
+					(i == 0 && j >= 2 && j <= len-2) ||
+					(j == 0 && i >= 2 && i <= len-2) ||
+					(i == len && j >= 2 && j <= len-2) ||
+					(j == len && i >= 2 && i <= len-2)
+				) {
+					val = region3;
+				} else if ( // Before-edges
+					(i == 1 && j >= 2 && j <= len-2) ||
+					(j == 1 && i >= 2 && i <= len-2) ||
+					(i == len-1 && j >= 2 && j <= len-2) ||
+					(j == len-1 && i >= 2 && i <= len-2)
+				) {
+					val = region2;
+				} else if ( // Before-corners
+					(i == 0 && j == 1) ||
+					(i == 1 && j == 0) ||
+					(i == 1 && j == 1) ||
+
+					(i == 0 && j == len-1) ||
+					(i == 1 && j == len) ||
+					(i == 1 && j == len-1) ||
+
+					(i == len && j == 1) ||
+					(i == len-1 && j == 0) ||
+					(i == len-1 && j == 1) ||
+
+					(i == len && j == len-1) ||
+					(i == len-1 && j == len) ||
+					(i == len-1 && j == len-1)
+				) {
+					val = region4;
+				} else { // Middle
+					val = region1;
+				}
+
+				// Check player
+				if (board[i][j] == 1) {
+					p1 += val;
+				} else if (board[i][j] == 2) {
+					p2 += val;
+				}
+			}
+		}
+
+		if (currentPlayer == 1) {
+			return p1 - p2;
+		} else {
+			return p2 - p1;
+		}
+	}
+
 	/**
 	 * Get utility of end state (or any other state)
 	 * @param s game state
 	 * @return state utility for current player
 	 */
 	public int getStateUtility(GameState s) {
+		int state = boardValue(s);
+		int win = 1000000;
+		int loss = state / 2;
+
 		int[] tokenCount= s.countTokens();
 		if (tokenCount[0] == tokenCount[1]) return 0;
 		if (currentPlayer == 1) {
-			if(tokenCount[0] > tokenCount[1]) return 100;
-			else return -100;
+			if(tokenCount[0] > tokenCount[1]) return win;
+			else return loss;
 		} else {
-			if (tokenCount[0] > tokenCount[1]) return -100;
-			else return 100;
+			if (tokenCount[0] > tokenCount[1]) return loss;
+			else return win;
 		}
 	}
 
@@ -180,29 +265,7 @@ public class OthelloAI21 implements IOthelloAI{
 	 * @return
 	 */
 	public int evaluateState(GameState s) {
-		//return sigmoid(strongPositions(s)+getStateUtility(s)/100);
-		int[] tokenCount= s.countTokens();
-
-		if (currentPlayer == 1) {
-			return tokenCount[0] - tokenCount[1] + strongPositions(s);
-		} else {
-			return tokenCount[1] - tokenCount[0] + strongPositions(s);
-		}
-
-		//return getStateUtility(s) + strongPositions(s);
-		/* //replace with clever evaluation:
-		return getStateUtility(s);
-
-		//f_1 empty squares modulo 2
-		int emptySquares = emptySquares(s);
-
-
-		//f_3 moves for me vs moves for opponent
-		int[] tokens = s.countTokens();
-		int moveValue = tokens[0] - tokens[1];
-		int moves = (currentPlayer == 1) ? moveValue : -moveValue; */
-
-
+		return boardValue(s);
 	}
 
 	// TODO: Tests sigmoid
@@ -211,45 +274,6 @@ public class OthelloAI21 implements IOthelloAI{
 		return value.intValue();
 	}
 
-	private int strongPositions(GameState s){
-		int strongPositionNum = 0;
-		int[][] board = s.getBoard();
-		for (int[] boardR : board) {
-			if (boardR[0] == currentPlayer) {
-				strongPositionNum += 1;
-			}
-			if (boardR[boardR.length-1] == currentPlayer) {
-				strongPositionNum += 1;
-			}
-		}
-
-		for (int boardC : board[0]) {
-			if (boardC == currentPlayer) {
-				strongPositionNum += 1;
-			}
-		}
-
-		for (int boardC : board[board[0].length - 1]) {
-			if (boardC == currentPlayer) {
-				strongPositionNum += 1;
-			}
-		}
-
-		if (board[0][0] == currentPlayer) {
-			strongPositionNum += 2;
-		}
-		if (board[0][board[0].length - 1] == currentPlayer) {
-			strongPositionNum += 2;
-		}
-		if (board[board[0].length - 1][0] == currentPlayer) {
-			strongPositionNum += 2;
-		}
-		if (board[board[0].length - 1][board[0].length - 1] == currentPlayer) {
-			strongPositionNum += 2;
-		}
-
-		return strongPositionNum;
-	}
 
 	private int emptySquares(GameState s) {
 		int[][] board = s.getBoard();
@@ -262,5 +286,50 @@ public class OthelloAI21 implements IOthelloAI{
 			}
 		}
 		return tokens;
+	}
+
+	class Memorizer {
+		private int memorizerUsed;
+		private int memorizerAdded;
+		private HashMap<String, Integer> memorizer;
+
+		public Memorizer() {
+			memorizer = new HashMap<String, Integer>();
+			memorizerAdded = 0;
+			memorizerUsed = 0;
+		}
+
+		public int get(GameState gs, int depth) {
+			String hash = getGameStateHashCode(gs, depth);
+			return get(hash);
+		}
+
+		public boolean exist(String hash) {
+			if (memorizer.containsKey(hash)) {
+				return true;
+			}
+
+			return false;
+		}
+
+		public int get(String hash) {
+			memorizerUsed++;
+			return memorizer.get(hash);
+		}
+
+		public void put(String hash, int value) {
+			memorizer.put(hash, value);
+			memorizerAdded++;
+		}
+
+		public String getGameStateHashCode(GameState s, int depth) {
+			int[][] board = s.getBoard();
+			String boardString = "" + depth + s.getPlayerInTurn();
+			for (int[] r : board) {
+				boardString += Arrays.toString(r);
+			}
+
+			return boardString;
+		}
 	}
 }
